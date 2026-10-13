@@ -1,0 +1,6 @@
+{
+  "name": "KinPulse - Family Home & Inventory Hub",
+  "description": "Collaborative home management webapp with nested grocery inventory tracking, chore scheduling, shared calendar, and chore performance analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
