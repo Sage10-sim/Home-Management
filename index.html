@@ -1,18 +1,230 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-50">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KinPulse - Family Home &amp; Inventory Hub</title>
-    <meta name="description" content="Collaborative home management webapp with nested grocery inventory tracking, chore scheduling, shared calendar, and chore performance analytics." />
+    <meta
+      name="description"
+      content="Collaborative home management webapp with nested grocery inventory tracking, chore scheduling, shared calendar, and chore performance analytics."
+    />
     <meta property="og:title" content="KinPulse - Family Home &amp; Inventory Hub" />
-    <meta property="og:description" content="Collaborative home management webapp with nested grocery inventory tracking, chore scheduling, shared calendar, and chore performance analytics." />
+    <meta
+      property="og:description"
+      content="Collaborative home management webapp with nested grocery inventory tracking, chore scheduling, shared calendar, and chore performance analytics."
+    />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS (CDN for standalone browser & GitHub Pages execution) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Chart.js (CDN for proactive and postpone rate charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Custom smooth scroll and scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="./src/main.tsx"></script>
+  <body class="min-h-full flex flex-col bg-slate-50 text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+    <!-- TOP STICKY NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-xs">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 gap-2">
+          <!-- Logo & Brand -->
+          <div class="flex items-center gap-3 cursor-pointer shrink-0" onclick="switchTab('dashboard')">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-indigo-200">
+              🏠
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900">KinPulse</span>
+                <span class="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">Hub</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Family Home &amp; Inventory Management</p>
+            </div>
+          </div>
+
+          <!-- Desktop Navigation Tabs -->
+          <nav class="hidden md:flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl border border-slate-200/70">
+            <!-- Dashboard Tab -->
+            <button
+              id="nav-tab-dashboard"
+              onclick="switchTab('dashboard')"
+              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer transition"
+            >
+              <span>📊 Dashboard</span>
+              <span
+                id="badge-overdue"
+                style="display: none;"
+                class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-xs"
+              >0</span>
+            </button>
+
+            <!-- Groceries Tab -->
+            <button
+              id="nav-tab-groceries"
+              onclick="switchTab('groceries')"
+              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer transition"
+            >
+              <span>🛍️ Groceries &amp; Pantry</span>
+              <span
+                id="badge-lowstock"
+                style="display: none;"
+                class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs"
+              >0</span>
+            </button>
+
+            <!-- Chores Tab -->
+            <button
+              id="nav-tab-chores"
+              onclick="switchTab('chores')"
+              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer transition"
+            >
+              <span>✓ Chores</span>
+              <span
+                id="badge-chores"
+                class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600"
+              >0</span>
+            </button>
+
+            <!-- Calendar Tab -->
+            <button
+              id="nav-tab-calendar"
+              onclick="switchTab('calendar')"
+              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer transition"
+            >
+              <span>📅 Shared Calendar</span>
+            </button>
+          </nav>
+
+          <!-- Right: Profile Switcher & Actions -->
+          <div class="relative flex items-center gap-2">
+            <!-- Active Member Pill -->
+            <div
+              onclick="toggleMemberDropdown()"
+              class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition cursor-pointer select-none"
+              title="Switch family member or edit profile"
+            >
+              <span id="header-active-avatar" class="text-xl sm:text-2xl leading-none">👩</span>
+              <div class="text-left hidden sm:block">
+                <div class="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">
+                  <span id="header-active-name">Sarah</span>
+                  <span class="text-[10px] text-slate-400">▾</span>
+                </div>
+                <div id="header-active-role" class="text-[10px] text-slate-500 font-medium leading-none">Mom</div>
+              </div>
+              <span class="sm:hidden text-xs text-slate-400">▾</span>
+            </div>
+
+            <!-- Member Switcher Dropdown Menu -->
+            <div
+              id="member-dropdown"
+              class="hidden absolute right-0 top-13 z-50 w-64 sm:w-72 bg-white rounded-3xl p-3 shadow-2xl border border-slate-200 animate-in fade-in slide-in-from-top-2 duration-150"
+            >
+              <div class="px-2 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900">Family Members</h4>
+                  <p class="text-[10px] text-slate-400">Switch profile or click ✏️ to edit</p>
+                </div>
+                <button
+                  onclick="toggleMemberDropdown()"
+                  class="text-slate-400 hover:text-slate-600 text-xs p-1 cursor-pointer"
+                >✕</button>
+              </div>
+
+              <!-- List container populated by app.js -->
+              <div id="member-dropdown-list" class="space-y-0.5 max-h-60 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN APP CONTENT AREA (DYNAMICALLY RENDERED BY APP.JS) -->
+    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-8"></main>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR (FIXED ON PHONES, HIDDEN ON DESKTOP) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around safe-bottom">
+      <button
+        id="mobile-nav-dashboard"
+        onclick="switchTab('dashboard')"
+        class="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-indigo-600 transition cursor-pointer text-center"
+      >
+        <span class="text-lg">📊</span>
+        <span class="text-[10px] font-bold mt-0.5">Overview</span>
+      </button>
+
+      <button
+        id="mobile-nav-groceries"
+        onclick="switchTab('groceries')"
+        class="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-indigo-600 transition cursor-pointer text-center"
+      >
+        <span class="text-lg">🛍️</span>
+        <span class="text-[10px] font-bold mt-0.5">Pantry</span>
+      </button>
+
+      <button
+        id="mobile-nav-chores"
+        onclick="switchTab('chores')"
+        class="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-indigo-600 transition cursor-pointer text-center"
+      >
+        <span class="text-lg">✓</span>
+        <span class="text-[10px] font-bold mt-0.5">Chores</span>
+      </button>
+
+      <button
+        id="mobile-nav-calendar"
+        onclick="switchTab('calendar')"
+        class="flex flex-col items-center py-1 px-3 rounded-xl text-slate-500 hover:text-indigo-600 transition cursor-pointer text-center"
+      >
+        <span class="text-lg">📅</span>
+        <span class="text-[10px] font-bold mt-0.5">Calendar</span>
+      </button>
+    </nav>
+
+    <!-- GLOBAL MODAL CONTAINER -->
+    <div id="modal-wrapper"></div>
+
+    <!-- PURE NATIVE VANILLA JAVASCRIPT APPLICATION -->
+    <script src="./app.js"></script>
   </body>
 </html>
-
